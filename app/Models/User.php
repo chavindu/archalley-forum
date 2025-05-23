@@ -21,6 +21,16 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'company',
+        'profession',
+        'bio',
+        'social_media_links',
+        'website_link',
+        'business_email',
+        'phone_number',
+        'is_verified',
+        'directory_visible',
+        'ranking_badge_id'
     ];
 
     /**
@@ -41,5 +51,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'social_media_links' => 'array',
+        'is_verified' => 'boolean',
+        'directory_visible' => 'boolean'
     ];
 }
