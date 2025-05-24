@@ -31,6 +31,8 @@ class CommentResource extends JsonResource
                     ] : null,
                 ];
             }),
+            'upvotes_count' => $this->upvotes_count,
+            'downvotes_count' => $this->downvotes_count,
             // Add other fields as needed
         ];
     }

@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\UserRole;
+use App\Enums\VerificationStatus;
 
 class User extends Authenticatable
 {
@@ -31,7 +33,15 @@ class User extends Authenticatable
         'phone_number',
         'is_verified',
         'directory_visible',
-        'ranking_badge_id'
+        'ranking_badge_id',
+        'provider',
+        'provider_id',
+        'provider_token',
+        'provider_refresh_token',
+        'provider_token_expires_at',
+        'avatar_url',
+        'role',
+        'profile_picture_path',
     ];
 
     /**
@@ -42,6 +52,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'provider_token',
+        'provider_refresh_token',
     ];
 
     /**
@@ -54,7 +66,9 @@ class User extends Authenticatable
         'password' => 'hashed',
         'social_media_links' => 'array',
         'is_verified' => 'boolean',
-        'directory_visible' => 'boolean'
+        'directory_visible' => 'boolean',
+        'provider_token_expires_at' => 'datetime',
+        'role' => UserRole::class,
     ];
 
     /**
@@ -70,9 +84,80 @@ class User extends Authenticatable
         return $this->belongsTo(\App\Models\UserRankingBadge::class, 'ranking_badge_id');
     }
 
-    public function getProfilePictureUrlAttribute()
+    /**
+     * Get the URL for the user's profile picture.
+     *
+     * @return string
+     */
+    public function getProfilePictureUrlAttribute(): string
     {
-        // Return the profile picture URL if set, otherwise return a placeholder
-        return $this->attributes['profile_picture_url'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($this->name);
+        if ($this->profile_picture_path) {
+            return asset('storage/' . $this->profile_picture_path);
+        }
+
+        // Return a default avatar URL if no profile picture is set
+        return asset('images/default-avatar.png');
+    }
+
+    // Role-related methods
+    public function isAdmin(): bool
+    {
+        return $this->role->isAdmin();
+    }
+
+    public function isModerator(): bool
+    {
+        return $this->role->isModerator();
+    }
+
+    public function isAdminOrModerator(): bool
+    {
+        return $this->role->isAdminOrModerator();
+    }
+
+    public function hasRole(UserRole $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Get the verification requests for the user.
+     */
+    public function verificationRequests(): HasMany
+    {
+        return $this->hasMany(VerificationRequest::class);
+    }
+
+    /**
+     * Get the latest verification request for the user.
+     */
+    public function latestVerificationRequest()
+    {
+        return $this->verificationRequests()->latest()->first();
+    }
+
+    /**
+     * Check if the user has a pending verification request.
+     */
+    public function hasPendingVerificationRequest(): bool
+    {
+        return $this->verificationRequests()
+            ->where('status', VerificationStatus::PENDING)
+            ->exists();
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications(): HasMany
+    {
+        return $this->notifications()->whereNull('read_at');
+    }
+
+    public function markAllNotificationsAsRead(): void
+    {
+        $this->unreadNotifications()->update(['read_at' => now()]);
     }
 }

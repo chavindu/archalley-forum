@@ -13,6 +13,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+
+        // Evaluate user rankings daily at midnight
+        $schedule->command('users:evaluate-rankings')
+            ->daily()
+            ->at('00:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/user-rankings.log'));
     }
 
     /**

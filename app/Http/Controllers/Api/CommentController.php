@@ -9,32 +9,61 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\StoreCommentRequest;
+use App\Services\MentionService;
+use App\Models\Notification;
 
 class CommentController extends Controller
 {
+    protected $mentionService;
+
+    public function __construct(MentionService $mentionService)
+    {
+        $this->mentionService = $mentionService;
+    }
+
     /**
      * Store a newly created comment for a specific thread.
      */
-    public function store(StoreCommentRequest $request, $threadId)
+    public function store(Request $request, $threadId)
     {
         $thread = Thread::findOrFail($threadId);
-        $validated = $request->validated();
-        // Ensure parent_id belongs to the same thread if provided
-        if (isset($validated['parent_id'])) {
-            $parent = Comment::where('id', $validated['parent_id'])->where('thread_id', $thread->id)->first();
-            if (!$parent) {
-                return response()->json(['message' => 'Invalid parent_id for this thread.'], 422);
-            }
-        }
 
-        $comment = Comment::create([
-            'user_id' => Auth::id(),
-            'thread_id' => $thread->id,
-            'parent_id' => $validated['parent_id'] ?? null,
-            'content' => $validated['content'],
+        $validated = $request->validate([
+            'content' => 'required|string',
         ]);
 
-        return response()->json($comment->load(['user', 'replies']), 201);
+        $comment = $thread->comments()->create([
+            'content' => $validated['content'],
+            'user_id' => $request->user()->id,
+        ]);
+
+        // Handle mentions
+        $this->mentionService->createMentionNotifications(
+            $comment->content,
+            $request->user(),
+            'comment',
+            "/discussions/{$thread->id}#comment-{$comment->id}",
+            "on thread: {$thread->title}"
+        );
+
+        // Notify thread author if it's not the same user
+        if ($thread->user_id !== $request->user()->id) {
+            Notification::create([
+                'user_id' => $thread->user_id,
+                'type' => 'reply',
+                'message' => sprintf(
+                    '%s replied to your thread "%s"',
+                    $request->user()->name,
+                    $thread->title
+                ),
+                'link' => "/discussions/{$thread->id}#comment-{$comment->id}",
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Comment created successfully',
+            'data' => $comment->load('author'),
+        ], 201);
     }
 
     /**

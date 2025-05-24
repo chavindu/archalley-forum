@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Comment extends Model
 {
@@ -63,5 +64,20 @@ class Comment extends Model
     public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id');
+    }
+
+    public function votes(): MorphMany
+    {
+        return $this->morphMany(\App\Models\Vote::class, 'votable');
+    }
+
+    public function getUpvotesCountAttribute()
+    {
+        return $this->votes()->where('vote_type', 'upvote')->count();
+    }
+
+    public function getDownvotesCountAttribute()
+    {
+        return $this->votes()->where('vote_type', 'downvote')->count();
     }
 }

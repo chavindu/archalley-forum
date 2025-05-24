@@ -31,4 +31,31 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+
+    'google_gemini' => [
+        'api_key' => env('GOOGLE_GEMINI_API_KEY'),
+    ],
+
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => env('APP_URL') . '/api/auth/facebook/callback',
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('APP_URL') . '/api/auth/google/callback',
+    ],
+
+    'microsoft' => [
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect' => env('APP_URL') . '/api/auth/microsoft/callback',
+        'tenant' => env('MICROSOFT_TENANT_ID', 'common'),
+    ],
+
 ];

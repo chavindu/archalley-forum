@@ -11,6 +11,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use App\Http\Requests\StoreThreadRequest;
 use App\Http\Requests\UpdateThreadRequest;
+use App\Services\AIService;
+use App\Models\Category;
 
 class ThreadController extends Controller
 {
@@ -32,13 +34,21 @@ class ThreadController extends Controller
     {
         $validated = $request->validated();
 
+        $ai = new AIService();
+        $categoryName = $ai->categorizeThread($validated['title'], $validated['content']);
+        $category = Category::where('name', $categoryName)->first();
+        if (!$category) {
+            $category = Category::where('name', 'Other')->first();
+        }
+        $tags = $ai->generateTags($validated['title'], $validated['content']);
+
         $thread = Thread::create([
             'user_id' => Auth::id(),
-            'category_id' => $validated['category_id'],
+            'category_id' => $category ? $category->id : null,
             'title' => $validated['title'],
             'slug' => Str::slug($validated['title']) . '-' . uniqid(),
             'content' => $validated['content'],
-            'tags' => $validated['tags'] ?? [],
+            'tags' => $tags,
         ]);
 
         return response()->json($thread->load(['user', 'category']), 201);
