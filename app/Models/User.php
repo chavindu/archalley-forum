@@ -64,4 +64,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Thread::class);
     }
+
+    public function ranking_badge()
+    {
+        return $this->belongsTo(\App\Models\UserRankingBadge::class, 'ranking_badge_id');
+    }
+
+    public function getProfilePictureUrlAttribute()
+    {
+        // Return the profile picture URL if set, otherwise return a placeholder
+        return $this->attributes['profile_picture_url'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($this->name);
+    }
 }

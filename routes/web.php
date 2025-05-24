@@ -15,5 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/discussions', [App\Http\Controllers\DiscussionsController::class, 'index'])->name('discussions');
+Route::get('/discussions/{threadId}', [App\Http\Controllers\DiscussionsController::class, 'show'])->name('discussions.show');
+Route::get('/discussions/create', [App\Http\Controllers\DiscussionsController::class, 'create'])->name('discussions.create');
 
 require __DIR__.'/auth.php';
