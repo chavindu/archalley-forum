@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    /* Add any base styles here */
+}
+
+@layer components {
+    /* Add any component styles here */
+}
+
+@layer utilities {
+    /* Add any utility styles here */
+} 

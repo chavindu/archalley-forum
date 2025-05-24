@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -55,4 +56,12 @@ class User extends Authenticatable
         'is_verified' => 'boolean',
         'directory_visible' => 'boolean'
     ];
+
+    /**
+     * Get the threads created by the user.
+     */
+    public function threads(): HasMany
+    {
+        return $this->hasMany(Thread::class);
+    }
 }

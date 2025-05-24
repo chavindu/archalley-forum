@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return ['Laravel' => app()->version()];
-});
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/discussions', [App\Http\Controllers\DiscussionsController::class, 'index'])->name('discussions');
 
 require __DIR__.'/auth.php';
